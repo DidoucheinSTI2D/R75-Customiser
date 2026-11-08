@@ -22,6 +22,16 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run dist:mac
+      - name: Smoke test (signature + app starts and stays up)
+        run: |
+          APP="dist/mac-universal/R75 Customiser.app"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          "$APP/Contents/MacOS/R75 Customiser" > app.log 2>&1 &
+          PID=$!
+          sleep 15
+          kill -0 $PID || { cat app.log; echo "app exited early"; exit 1; }
+          kill $PID
+          cat app.log
       - uses: actions/upload-artifact@v4
         with:
           name: mac-dmg
