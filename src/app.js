@@ -7,7 +7,7 @@ const {
 const VENDOR_ID = 0x342d;
 const RAW_USAGE_PAGE = 0xff60;
 const BASE_OF = { 1: 0, 3: 2, 4: 0 }; // layer whose keys show through "transparent"
-const KC = { MUTE: 0xa8, VOLU: 0xa9, VOLD: 0xaa, F22: 0x71, F23: 0x72, F24: 0x73 };
+const KC = { MUTE: 0xa8, VOLU: 0xa9, VOLD: 0xaa, F17: 0x6c, F18: 0x6d, F19: 0x6e, F22: 0x71, F23: 0x72, F24: 0x73 };
 const host = window.r75; // Electron preload bridge (knob feature), absent in a plain browser
 
 const $ = (s) => document.querySelector(s);
@@ -53,6 +53,7 @@ function setLang(l) {
   renderPicker();
   renderFxNames();
   renderProfiles();
+  renderKnob();
   if (S.via) renderAll();
   if (host) host.setKnob({ lang }).catch(() => {});
 }
@@ -485,7 +486,11 @@ $('#l-color').addEventListener('input', (e) => pickColor(e.target.value));
 const K = { cfg: null, apps: [] };
 const STEPS = [2, 5, 10];
 const knobName = () => (K.cfg.target === 'spotify' ? 'Spotify' : K.cfg.app);
-const knobOnKeyboard = () => S.enc && S.enc[0][0] === KC.F24 && S.enc[0][1] === KC.F23;
+// Keys written to the knob, must match main.js. macOS: Mac layer and F17-F19 (no F21-F24 there).
+const isMac = () => !!K.cfg && K.cfg.platform === 'darwin';
+const KK = () => (isMac() ? { layer: 2, up: KC.F18, down: KC.F17, press: KC.F19, names: 'F18 / F17' }
+  : { layer: 0, up: KC.F24, down: KC.F23, press: KC.F22, names: 'F24 / F23' });
+const knobOnKeyboard = () => S.enc && S.enc[KK().layer][0] === KK().up && S.enc[KK().layer][1] === KK().down;
 
 async function refreshApps() {
   if (!host) return;
@@ -518,6 +523,8 @@ function renderKnob() {
   $('#k-auto').checked = c.enabled ? !!c.autostart : $('#k-auto').checked;
   const isSp = c.target === 'spotify';
   const name = knobName();
+  $('#k-target').closest('.field').hidden = isMac(); // per-app mixer volume is Windows only
+  rich($('.how'), t(isMac() ? 'knob.howMac' : 'knob.how'));
   [...$('#k-target').children].forEach((b) => b.classList.toggle('active', b.dataset.t === c.target));
   $('#k-app-box').hidden = isSp;
   $('#k-sp-box').hidden = !isSp;
@@ -533,7 +540,7 @@ function renderKnob() {
   const active = c.enabled && knobOnKeyboard();
   const broken = c.enabled && S.enc && !knobOnKeyboard();
   st.className = 'k-state' + (active ? ' on' : broken ? ' warn' : '');
-  st.textContent = active ? t('knob.stOn', name) : broken ? t('knob.stBroken') : t('knob.stOff');
+  st.textContent = active ? t('knob.stOn', name) : broken ? t('knob.stBroken', KK().names) : t('knob.stOff');
   $('.dial').classList.toggle('on', active);
   $('.dial').style.setProperty('--rot', active ? '35deg' : '-40deg');
   $('#k-dial-app').textContent = active ? name : 'VOL';
@@ -542,11 +549,12 @@ function renderKnob() {
 // Knob press (Windows layer, matrix 2,13): F22 in Spotify mode (play/pause, next, previous), Mute otherwise.
 async function setKnobPress(spotify) {
   if (!S.via) return;
-  const cur = S.keymap[0][2][13];
-  const want = spotify ? KC.F22 : KC.MUTE;
-  if (cur === want || (!spotify && cur !== KC.F22)) return; // leave a custom press key alone
-  await S.via.setKey(0, 2, 13, want);
-  S.keymap[0][2][13] = want;
+  const { layer, press } = KK();
+  const cur = S.keymap[layer][2][13];
+  const want = spotify ? press : KC.MUTE;
+  if (cur === want || (!spotify && cur !== press)) return; // leave a custom press key alone
+  await S.via.setKey(layer, 2, 13, want);
+  S.keymap[layer][2][13] = want;
   renderBoard();
 }
 
@@ -601,9 +609,10 @@ if (host) {
     if (isSp && !K.cfg.spotify) return toast(t('knob.spNeed'), true);
     if (!S.via) return toast(t('err.noKb'), true);
     try {
-      await S.via.setEncoder(0, 0, KC.F24);
-      await S.via.setEncoder(0, 1, KC.F23);
-      S.enc[0] = [KC.F24, KC.F23];
+      const { layer, up, down } = KK();
+      await S.via.setEncoder(layer, 0, up);
+      await S.via.setEncoder(layer, 1, down);
+      S.enc[layer] = [up, down];
       await setKnobPress(isSp);
       K.cfg = await host.setKnob({ enabled: true, app: name, autostart: $('#k-auto').checked });
       renderKnob();
@@ -616,9 +625,10 @@ if (host) {
   $('#k-off').onclick = async () => {
     try {
       if (S.via) {
-        await S.via.setEncoder(0, 0, KC.VOLU);
-        await S.via.setEncoder(0, 1, KC.VOLD);
-        S.enc[0] = [KC.VOLU, KC.VOLD];
+        const { layer } = KK();
+        await S.via.setEncoder(layer, 0, KC.VOLU);
+        await S.via.setEncoder(layer, 1, KC.VOLD);
+        S.enc[layer] = [KC.VOLU, KC.VOLD];
         await setKnobPress(false);
       }
       K.cfg = await host.setKnob({ enabled: false, autostart: false });

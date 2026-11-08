@@ -11,8 +11,8 @@
 </p>
 
 <p align="center">
-  <a href="../../releases/latest"><img src="https://img.shields.io/badge/t%C3%A9l%C3%A9charger-Windows%20.exe-ff6a1a?style=flat-square" alt="Télécharger"></a>
-  <img src="https://img.shields.io/badge/plateforme-Windows%2010%20%7C%2011-2e2d28?style=flat-square" alt="Windows 10 et 11">
+  <a href="../../releases/latest"><img src="https://img.shields.io/badge/t%C3%A9l%C3%A9charger-Windows%20%7C%20macOS-ff6a1a?style=flat-square" alt="Télécharger"></a>
+  <img src="https://img.shields.io/badge/plateforme-Windows%2010%2F11%20%7C%20macOS-2e2d28?style=flat-square" alt="Windows 10/11 et macOS">
   <img src="https://img.shields.io/badge/langues-EN%20%C2%B7%20FR%20%C2%B7%20ES%20%C2%B7%20DE%20%C2%B7%20AR-2e2d28?style=flat-square" alt="5 langues">
   <img src="https://img.shields.io/badge/licence-MIT-2e2d28?style=flat-square" alt="MIT">
 </p>
@@ -59,11 +59,13 @@ Le configurateur web officiel de RK est lent, demande un navigateur et ne détec
 
 ## Démarrer
 
-1. Télécharge `R75-Customiser-x.y.z.exe` sur la page [Releases](../../releases/latest).
+1. Télécharge sur la page [Releases](../../releases/latest) : `R75-Customiser-x.y.z.exe` pour Windows (portable, rien à installer) ou `R75-Customiser-x.y.z-mac.dmg` pour macOS (Intel et Apple Silicon).
 2. Branche le clavier avec le **dongle 2.4 GHz** ou le **câble USB**. Le mode Bluetooth ne permet pas la configuration (le firmware n'expose pas son interface de configuration en Bluetooth).
-3. Lance le `.exe`. Le clavier est détecté automatiquement.
+3. Lance l'app. Le clavier est détecté automatiquement.
 
 > **Windows SmartScreen** peut afficher un avertissement au premier lancement car l'app n'est pas signée. Clique sur *Informations complémentaires*, puis *Exécuter quand même*.
+
+> **macOS** : ouvre le `.dmg` et glisse *R75 Customiser* dans *Applications*. L'app n'est pas notariée par Apple, le premier lancement est donc bloqué : ouvre *Réglages Système → Confidentialité et sécurité*, descends et clique sur *Ouvrir quand même* (ou lance `xattr -cr "/Applications/R75 Customiser.app"` dans le Terminal).
 
 Clavier sans fil en veille ? Appuie sur une touche, puis clique sur *Rechercher le clavier*.
 
@@ -88,6 +90,8 @@ Déplace la barre de volume de Spotify lui-même, sur l'appareil qui joue (ce PC
 
 En mode Spotify, l'appui sur la molette devient un bouton multimédia : **1 clic** lecture / pause, **2 clics** morceau suivant, **3 clics** retour au début du morceau, ou au morceau précédent s'il vient de commencer.
 
+Sur macOS, seul le mode Spotify est disponible (macOS n'a pas de volume par application), et la molette est réglée sur la **couche Mac** (`F18` / `F17`, appui `F19`) : passe le clavier en mode Mac.
+
 Chaque utilisateur crée sa propre app Spotify : en mode développement, Spotify limite chaque app à quelques utilisateurs et exige que son propriétaire ait Premium.
 
 <p align="center"><img src="docs/knob-spotify.png" width="760" alt="Onglet Molette en mode Spotify"></p>
@@ -102,7 +106,7 @@ Fonctionnement : sur la couche Windows, la molette envoie `F24` / `F23`, deux to
 |---|---|
 | Clavier | Royal Kludge R75 (version sans fil, firmware QMK + VIA, protocole 12) |
 | Connexion | Dongle 2.4 GHz (testé, `VID 0x342D` / `PID 0xE485`) ou câble USB |
-| Système | Windows 10 et 11, 64 bits |
+| Système | Windows 10 et 11, 64 bits ; macOS 12 ou plus récent (Intel et Apple Silicon) |
 
 ## Compiler depuis les sources
 
@@ -113,6 +117,7 @@ npm install
 npm test        # vérifications hors ligne : protocole, macros, layout, traductions, aperçus
 npm start       # lance l'app en développement
 npm run dist    # produit dist/R75-Customiser-<version>.exe (portable)
+npm run dist:mac  # sur un Mac : produit dist/R75-Customiser-<version>-mac.dmg (universel)
 ```
 
 ## Détails techniques
@@ -127,7 +132,8 @@ npm run dist    # produit dist/R75-Customiser-<version>.exe (portable)
 ## Limites
 
 - Une seule couleur globale : le firmware d'origine du R75 sans fil n'expose pas le RGB par touche. Des firmwares QMK communautaires avec RGB par touche existent, mais uniquement pour le R75 filaire ; les flasher sur le modèle sans fil ferait au minimum perdre le sans-fil et peut bloquer le clavier, ils ne sont donc pas pris en charge.
-- La conversion du texte des macros gère les dispositions AZERTY (français) et QWERTY (US). Pour les autres, utilise les noms `{KC_...}`.
+- La conversion du texte des macros gère les dispositions AZERTY (français) et QWERTY (US) de Windows. Pour les autres (et les dispositions Mac, dont les symboles diffèrent), utilise les noms `{KC_...}`.
+- La version macOS est compilée sur les machines macOS de GitHub et n'est pas notariée ; elle a été moins testée que la version Windows.
 - La fonction molette → volume d'une app nécessite que l'app tourne en arrière-plan, et ne concerne que la couche Windows.
 - Le mode Spotify nécessite Spotify Premium et une connexion internet, et ne marche que sur les appareils qui acceptent le volume à distance (certains téléphones et TV non).
 

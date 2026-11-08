@@ -9,9 +9,12 @@ const VENDOR_ID = 0x342d; // Royal Kludge (Hangsheng)
 const isRk = (d) => d.vendorId === VENDOR_ID;
 const SRC = path.join(__dirname, 'src');
 const ICON = path.join(SRC, 'icon.png');
-const KEY_UP = 'F24'; // the knob sends these on the Windows layer when "knob -> app volume" is on
-const KEY_DOWN = 'F23';
-const KEY_PRESS = 'F22'; // knob press in Spotify mode: 1 click play/pause, 2 next, 3 previous
+const MAC = process.platform === 'darwin';
+// Keys the knob sends when the knob feature is on (Windows layer on Windows, Mac layer on macOS).
+// macOS has no F21-F24, so it uses F17-F19 (F13-F15 are display brightness on Apple keyboards).
+const KEY_UP = MAC ? 'F18' : 'F24';
+const KEY_DOWN = MAC ? 'F17' : 'F23';
+const KEY_PRESS = MAC ? 'F19' : 'F22'; // knob press in Spotify mode: 1 click play/pause, 2 next, 3 previous
 const TRAY_TEXT = {
   en: ['Open', 'Quit'], fr: ['Ouvrir', 'Quitter'], es: ['Abrir', 'Salir'], de: ['Öffnen', 'Beenden'], ar: ['فتح', 'إنهاء'],
 };
@@ -34,9 +37,10 @@ function saveCfg() {
 }
 
 // Portable build: register the real .exe, not the temporary extraction folder.
-const login = () => ({ path: process.env.PORTABLE_EXECUTABLE_FILE || process.execPath, args: ['--hidden'] });
+const login = () => (MAC ? {} : { path: process.env.PORTABLE_EXECUTABLE_FILE || process.execPath, args: ['--hidden'] });
 const getAutostart = () => app.isPackaged && app.getLoginItemSettings(login()).openAtLogin;
 const setAutostart = (on) => app.isPackaged && app.setLoginItemSettings({ ...login(), openAtLogin: on });
+const startedHidden = () => process.argv.includes('--hidden') || (MAC && app.getLoginItemSettings().wasOpenedAtLogin);
 
 // ------------------------------------------------------------------ audio helper
 // One long-running PowerShell process (src/audio.ps1) talking line by line over stdio.
@@ -68,6 +72,7 @@ function startHelper() {
 }
 
 function audio(cmd) {
+  if (MAC) return Promise.reject(new Error('per-app volume is Windows only'));
   const run = () => new Promise((resolve, reject) => {
     if (!ps) startHelper();
     const timer = setTimeout(() => {
@@ -320,12 +325,12 @@ function applyKnob() {
   if (cfg.enabled) {
     globalShortcut.register(KEY_UP, () => turn(cfg.step));
     globalShortcut.register(KEY_DOWN, () => turn(-cfg.step));
-    if (cfg.target === 'app') audio('list').catch(() => {}); // warm up PowerShell so the first notch is instant
+    if (cfg.target === 'app' && !MAC) audio('list').catch(() => {}); // warm up PowerShell so the first notch is instant
   }
   updateTray();
 }
 
-const knobState = () => ({ ...cfg, autostart: getAutostart(), spotify: !!sp, redirect: SP_REDIRECT });
+const knobState = () => ({ ...cfg, autostart: getAutostart(), spotify: !!sp, redirect: SP_REDIRECT, platform: process.platform });
 
 ipcMain.handle('knob:get', knobState);
 ipcMain.handle('knob:set', (_e, patch) => {
@@ -333,13 +338,13 @@ ipcMain.handle('knob:set', (_e, patch) => {
   if ([1, 2, 5, 10].includes(patch.step)) cfg.step = patch.step;
   if (typeof patch.enabled === 'boolean') cfg.enabled = patch.enabled;
   if (typeof patch.lang === 'string' && TRAY_TEXT[patch.lang]) cfg.lang = patch.lang;
-  if (['app', 'spotify'].includes(patch.target)) cfg.target = patch.target;
+  if (['app', 'spotify'].includes(patch.target) && !MAC) cfg.target = patch.target; // macOS: Spotify only
   if (typeof patch.autostart === 'boolean') setAutostart(patch.autostart);
   saveCfg();
   applyKnob();
   return knobState();
 });
-ipcMain.handle('audio:list', async () => JSON.parse(await audio('list')));
+ipcMain.handle('audio:list', async () => (MAC ? [] : JSON.parse(await audio('list'))));
 ipcMain.handle('spotify:login', async (_e, clientId) => {
   if (typeof clientId !== 'string' || !/^[0-9a-f]{32}$/i.test(clientId)) throw new Error('bad client id');
   if (clientId !== cfg.clientId) { sp = null; spSave(); }
@@ -383,8 +388,8 @@ function createWindow() {
     if (url.startsWith('https://developer.spotify.com/')) shell.openExternal(url);
     return { action: 'deny' };
   });
-  // Started by Windows with --hidden: stay in the tray while the knob feature is on.
-  if (!(process.argv.includes('--hidden') && cfg.enabled)) win.once('ready-to-show', () => win.show());
+  // Started at logon: stay in the tray while the knob feature is on.
+  if (!(startedHidden() && cfg.enabled)) win.once('ready-to-show', () => win.show());
   win.on('close', (e) => {
     if (cfg.enabled && !quitting) {
       e.preventDefault();
@@ -401,8 +406,10 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.on('second-instance', showWin);
+  app.on('activate', showWin); // macOS: click on the Dock icon
   app.whenReady().then(() => {
     loadCfg();
+    if (MAC) cfg.target = 'spotify';
     spLoad();
     createWindow();
     applyKnob();

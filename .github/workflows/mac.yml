@@ -1,0 +1,33 @@
+name: macOS build
+
+# Builds the macOS app (universal .dmg, Intel + Apple Silicon) on a GitHub macOS runner.
+# On a published release the .dmg is attached to it; a manual run keeps it as a workflow artifact.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run dist:mac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-dmg
+          path: dist/*.dmg
+      - name: Attach to the release
+        if: github.event_name == 'release'
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/*.dmg --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -11,8 +11,8 @@
 </p>
 
 <p align="center">
-  <a href="../../releases/latest"><img src="https://img.shields.io/badge/download-Windows%20.exe-ff6a1a?style=flat-square" alt="Download"></a>
-  <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-2e2d28?style=flat-square" alt="Windows 10 and 11">
+  <a href="../../releases/latest"><img src="https://img.shields.io/badge/download-Windows%20%7C%20macOS-ff6a1a?style=flat-square" alt="Download"></a>
+  <img src="https://img.shields.io/badge/platform-Windows%2010%2F11%20%7C%20macOS-2e2d28?style=flat-square" alt="Windows 10/11 and macOS">
   <img src="https://img.shields.io/badge/languages-EN%20%C2%B7%20FR%20%C2%B7%20ES%20%C2%B7%20DE%20%C2%B7%20AR-2e2d28?style=flat-square" alt="5 languages">
   <img src="https://img.shields.io/badge/license-MIT-2e2d28?style=flat-square" alt="MIT">
 </p>
@@ -59,11 +59,13 @@ The official RK web configurator is slow, needs a browser and often does not eve
 
 ## Getting started
 
-1. Download `R75-Customiser-x.y.z.exe` from the [Releases](../../releases/latest) page.
+1. Download from the [Releases](../../releases/latest) page: `R75-Customiser-x.y.z.exe` for Windows (portable, nothing to install) or `R75-Customiser-x.y.z-mac.dmg` for macOS (Intel and Apple Silicon).
 2. Connect the keyboard with the **2.4 GHz dongle** or the **USB cable**. Bluetooth mode cannot be configured (the firmware does not expose its configuration interface over Bluetooth).
-3. Run the `.exe`. The keyboard is detected automatically.
+3. Run the app. The keyboard is detected automatically.
 
 > **Windows SmartScreen** may warn you the first time because the app is not code-signed. Click *More info*, then *Run anyway*.
+
+> **macOS**: open the `.dmg` and drag *R75 Customiser* to *Applications*. The app is not notarized by Apple, so the first launch is blocked: open *System Settings → Privacy & Security*, scroll down and click *Open Anyway* (or run `xattr -cr "/Applications/R75 Customiser.app"` in Terminal).
 
 Wireless keyboard asleep? Press any key, then click *Find keyboard*.
 
@@ -90,6 +92,8 @@ Moves the volume slider inside Spotify itself, on whatever device is playing (th
 
 In Spotify mode the knob press becomes a media button: **1 click** play / pause, **2 clicks** next track, **3 clicks** back to the start of the song, or to the previous track if the song has just started.
 
+On macOS only Spotify mode is available (macOS has no per-app volume), and the knob is set on the **Mac layer** (`F18` / `F17`, press `F19`): switch the keyboard to Mac mode.
+
 Each user creates their own Spotify app because Spotify only allows a handful of users per app in Development Mode, and requires the app owner to have Premium.
 
 <br clear="right">
@@ -106,7 +110,7 @@ How it works: on the Windows layer the knob is set to send `F24` / `F23`, two ke
 |---|---|
 | Keyboard | Royal Kludge R75 (wireless version, QMK + VIA firmware, protocol 12) |
 | Connection | 2.4 GHz dongle (tested, `VID 0x342D` / `PID 0xE485`) or USB cable |
-| System | Windows 10 and 11, 64-bit |
+| System | Windows 10 and 11, 64-bit; macOS 12 or newer (Intel and Apple Silicon) |
 
 Other RK boards running QMK/VIA may be detected but use a different key layout: not supported.
 
@@ -119,6 +123,7 @@ npm install
 npm test        # offline checks: protocol, macros, layout, translations, effect previews
 npm start       # run the app in development
 npm run dist    # build dist/R75-Customiser-<version>.exe (portable)
+npm run dist:mac  # on a Mac: build dist/R75-Customiser-<version>-mac.dmg (universal)
 ```
 
 ## How it works
@@ -134,7 +139,8 @@ npm run dist    # build dist/R75-Customiser-<version>.exe (portable)
 ## Limitations
 
 - One global lighting colour: the stock wireless R75 firmware does not expose per-key RGB. Community QMK firmwares with per-key RGB exist for the wired R75 only; flashing them on the wireless model would at least break wireless and can brick the board, so they are not supported here.
-- Macro text conversion supports AZERTY (French) and QWERTY (US) Windows layouts. With other layouts, use `{KC_...}` key names.
+- Macro text conversion supports AZERTY (French) and QWERTY (US) Windows layouts. With other layouts (and Mac layouts, whose symbols differ), use `{KC_...}` key names.
+- The macOS build is made on GitHub's macOS runners and is not notarized; it has not been tested on as many machines as the Windows build.
 - The knob → app volume feature needs the app running in the background, and only applies to the Windows layer.
 - Spotify mode needs Spotify Premium and an internet connection, and only works on devices that allow remote volume (some phones and TVs do not).
 
