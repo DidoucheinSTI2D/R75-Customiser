@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'self'">
+  <style>
+    html, body { margin: 0; background: transparent; overflow: hidden; user-select: none; }
+    .osd {
+      position: absolute; inset: 6px;
+      display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
+      padding: 0 16px; border-radius: 10px;
+      background: #161613; border: 1px solid #3d3b35; color: #ebe7de;
+      font: 600 13px "Segoe UI Variable Text", "Segoe UI", sans-serif;
+    }
+    .bar { height: 4px; border-radius: 2px; background: #2e2d28; overflow: hidden; }
+    .bar i { display: block; height: 100%; width: 0; background: #ff6a1a; transition: width 0.08s; }
+    b { font: 12px "Cascadia Mono", Consolas, monospace; color: #8d887c; min-width: 34px; text-align: end; }
+    .none .bar i { background: #5d5a52; }
+    #sym { display: none; font: 600 15px "Segoe UI Symbol", "Segoe UI", sans-serif; color: #ff6a1a; letter-spacing: -0.12em; }
+    .text .bar { display: none; }
+    .text #sym { display: block; }
+    .none #sym { color: #8d887c; }
+  </style>
+</head>
+<body>
+  <div class="osd" id="osd"><span id="name"></span><div class="bar"><i id="fill"></i></div><span id="sym"></span><b id="pct"></b></div>
+  <script src="osd.js"></script>
+</body>
+</html>

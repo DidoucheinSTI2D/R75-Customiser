@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:">
+  <title>R75 Customiser</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <aside class="side">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="7" fill="#24231f"/><rect x="6" y="6" width="20" height="17" rx="4" fill="#3a3832"/><circle cx="22.5" cy="9.5" r="3.6" fill="#ff6a1a"/></svg>
+      <div><b>R75</b><span>Customiser</span></div>
+    </div>
+    <nav id="tabs" class="disabled">
+      <button data-tab="keys" class="active"><i>01</i><span data-i18n="tab.keys"></span></button>
+      <button data-tab="light"><i>02</i><span data-i18n="tab.light"></span></button>
+      <button data-tab="knob" id="nav-knob"><i>03</i><span data-i18n="tab.knob"></span></button>
+      <button data-tab="macros"><i>04</i><span data-i18n="tab.macros"></span></button>
+      <button data-tab="backup"><i>05</i><span data-i18n="tab.backup"></span></button>
+    </nav>
+    <div class="side-foot">
+      <div id="status" class="status off"><i></i><span></span></div>
+      <label class="lang"><span data-i18n="lang"></span><select id="lang"></select></label>
+    </div>
+  </aside>
+
+  <main>
+    <section id="connect" class="connect">
+      <div class="plug"><i></i><i></i></div>
+      <h1 data-i18n="c.title"></h1>
+      <p id="connect-msg"></p>
+      <button id="btn-search" class="primary" data-i18n="c.btn"></button>
+      <p class="hint" data-i18n="c.hint"></p>
+    </section>
+
+    <section id="tab-keys" class="tab" hidden>
+      <header class="head"><h1 data-i18n="keys.title"></h1><p data-i18n="keys.sub"></p></header>
+      <div class="seg" id="layers"></div>
+      <div class="board-wrap"><div id="board" dir="ltr"></div></div>
+      <div class="enc-row" id="enc"></div>
+
+      <div class="picker">
+        <div class="picker-head">
+          <div id="sel-info" class="sel-info"></div>
+          <div class="mods" data-i18n-title="keys.mods">
+            <label><input type="checkbox" id="m-ctrl"> <span data-i18n="mod.ctrl"></span></label>
+            <label><input type="checkbox" id="m-shift"> <span data-i18n="mod.shift"></span></label>
+            <label><input type="checkbox" id="m-alt"> <span data-i18n="mod.alt"></span></label>
+            <label><input type="checkbox" id="m-gui"> <span data-i18n="mod.gui"></span></label>
+          </div>
+          <input id="search" type="search" data-i18n-ph="keys.search">
+        </div>
+        <div id="groups"></div>
+        <div class="raw">
+          <input id="raw" data-i18n-ph="keys.raw" spellcheck="false">
+          <button id="raw-apply" data-i18n="keys.apply"></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-light" class="tab" hidden>
+      <header class="head"><h1 data-i18n="light.title"></h1><p data-i18n="light.sub"></p></header>
+      <div class="light-top">
+        <div class="stage">
+          <canvas id="fx-big"></canvas>
+          <div class="stage-cap"><small data-i18n="light.effect"></small><b id="fx-name"></b></div>
+        </div>
+        <div class="light-ctl">
+          <div class="field">
+            <label for="l-bright"><span data-i18n="light.bright"></span><output id="l-bright-v"></output></label>
+            <input type="range" id="l-bright" min="0" max="255">
+          </div>
+          <div class="field" id="f-speed">
+            <label for="l-speed"><span data-i18n="light.speed"></span><output id="l-speed-v"></output></label>
+            <input type="range" id="l-speed" min="0" max="255">
+          </div>
+          <div class="field" id="f-color">
+            <label for="l-color"><span data-i18n="light.color"></span><output id="l-color-v"></output></label>
+            <div class="color-row"><input type="color" id="l-color"><div id="swatches"></div></div>
+            <p class="hint" id="no-color" data-i18n="light.noColor" hidden></p>
+          </div>
+          <p class="hint" data-i18n="light.hint"></p>
+        </div>
+      </div>
+      <div class="fx-grid" id="fx-grid"></div>
+    </section>
+
+    <section id="tab-knob" class="tab" hidden>
+      <header class="head"><h1 data-i18n="knob.title"></h1><p data-i18n="knob.sub"></p></header>
+      <div class="knob-layout">
+        <div class="dial" aria-hidden="true"><div class="dial-ring"></div><span id="k-dial-app"></span></div>
+        <div class="knob-form">
+          <div id="k-state" class="k-state"></div>
+          <div class="field">
+            <label><span data-i18n="knob.target"></span></label>
+            <div class="seg" id="k-target">
+              <button data-t="app" data-i18n="knob.tMixer"></button>
+              <button data-t="spotify" data-i18n="knob.tSpotify"></button>
+            </div>
+          </div>
+          <div class="field" id="k-sp-box">
+            <ol class="sp-steps">
+              <li><span data-i18n-rich="knob.sp1"></span> <a href="https://developer.spotify.com/dashboard" target="_blank" data-i18n="knob.spDash"></a></li>
+              <li><span data-i18n-rich="knob.sp2"></span> <code id="k-sp-uri" dir="ltr"></code> <button id="k-sp-copy" class="ghost" data-i18n="knob.spCopy"></button></li>
+              <li data-i18n-rich="knob.sp3"></li>
+            </ol>
+            <label for="k-sp-id"><span data-i18n="knob.spId"></span></label>
+            <div class="row">
+              <input id="k-sp-id" maxlength="32" spellcheck="false" autocomplete="off" dir="ltr" placeholder="0123456789abcdef0123456789abcdef">
+              <button id="k-sp-connect" class="primary" data-i18n="knob.spConnect"></button>
+              <button id="k-sp-out" class="ghost" data-i18n="knob.spOut"></button>
+            </div>
+            <div id="k-sp-state" class="k-state"></div>
+            <p class="hint" data-i18n="knob.spNote"></p>
+            <p class="hint" data-i18n="knob.spClicks"></p>
+          </div>
+          <div class="field" id="k-app-box">
+            <label for="k-app"><span data-i18n="knob.app"></span></label>
+            <div class="row">
+              <input id="k-app" list="k-apps" spellcheck="false" autocomplete="off">
+              <datalist id="k-apps"></datalist>
+              <button id="k-refresh" data-i18n="knob.refresh"></button>
+            </div>
+            <div id="k-chips" class="chips"></div>
+            <p class="hint" data-i18n-rich="knob.appHint"></p>
+          </div>
+          <div class="field">
+            <label><span data-i18n="knob.step"></span></label>
+            <div class="seg" id="k-step"></div>
+          </div>
+          <label class="check"><input type="checkbox" id="k-auto" checked> <span data-i18n="knob.auto"></span></label>
+          <div class="row">
+            <button id="k-on" class="primary" data-i18n="knob.enable"></button>
+            <button id="k-off" data-i18n="knob.disable"></button>
+          </div>
+          <p class="hint how" data-i18n-rich="knob.how"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-macros" class="tab" hidden>
+      <header class="head"><h1 data-i18n="mac.title"></h1><p data-i18n="mac.sub"></p></header>
+      <div class="macros-head">
+        <label class="inline" for="m-layout"><span data-i18n="mac.layout"></span>
+          <select id="m-layout">
+            <option value="azerty" data-i18n="mac.azerty"></option>
+            <option value="us" data-i18n="mac.us"></option>
+          </select>
+        </label>
+        <div class="usage"><div id="usage-bar"><i></i></div><span id="usage-txt"></span></div>
+        <button id="macros-save" class="primary" data-i18n="mac.save"></button>
+      </div>
+      <details class="help">
+        <summary data-i18n="mac.syntax"></summary>
+        <ul>
+          <li data-i18n-rich="mac.h1"></li>
+          <li data-i18n-rich="mac.h2"></li>
+          <li data-i18n-rich="mac.h3"></li>
+          <li data-i18n-rich="mac.h4"></li>
+          <li data-i18n-rich="mac.h5"></li>
+          <li data-i18n-rich="mac.h6"></li>
+        </ul>
+      </details>
+      <div id="macro-list"></div>
+    </section>
+
+    <section id="tab-backup" class="tab" hidden>
+      <header class="head"><h1 data-i18n="pf.title"></h1><p data-i18n="pf.sub"></p></header>
+      <div class="row pf-new">
+        <input id="pf-name" maxlength="40" data-i18n-ph="pf.name" spellcheck="false">
+        <button id="pf-save" class="primary" data-i18n="pf.save"></button>
+      </div>
+      <div id="pf-list" class="pf-list"></div>
+      <h2 class="sub" data-i18n="bk.title"></h2>
+      <div class="cards">
+        <div class="card">
+          <h3 data-i18n="bk.export"></h3>
+          <p data-i18n="bk.exportP"></p>
+          <button id="b-export" class="primary" data-i18n="bk.exportBtn"></button>
+        </div>
+        <div class="card">
+          <h3 data-i18n="bk.import"></h3>
+          <p data-i18n="bk.importP"></p>
+          <button id="b-import" data-i18n="bk.importBtn"></button>
+          <input type="file" id="b-file" accept=".json,application/json" hidden>
+        </div>
+        <div class="card danger">
+          <h3 data-i18n="bk.reset"></h3>
+          <p data-i18n="bk.resetP"></p>
+          <button id="b-reset" data-i18n="bk.resetBtn"></button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" role="status"></div>
+  <script src="via.js"></script>
+  <script src="effects.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

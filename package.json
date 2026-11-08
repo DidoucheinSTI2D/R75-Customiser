@@ -1,0 +1,25 @@
+{
+  "name": "r75-customiser",
+  "productName": "R75 Customiser",
+  "version": "1.4.0",
+  "description": "Offline configurator for the Royal Kludge R75 keyboard: keys, Fn layer, RGB effects, macros, knob to app volume.",
+  "author": "R75 Customiser contributors",
+  "main": "main.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/check.js",
+    "dist": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "45.2.3",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "io.github.r75customiser",
+    "productName": "R75 Customiser",
+    "files": ["main.js", "src/**/*"],
+    "win": { "target": "portable", "icon": "src/icon.png" },
+    "portable": { "artifactName": "R75-Customiser-${version}.exe" }
+  }
+}
